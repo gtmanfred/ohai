@@ -95,6 +95,7 @@ end
 
 # Adds rackspace Mash
 if looks_like_rackspace?
+  require 'resolv'
   rackspace Mash.new
   get_ip_address(:public_ip, :eth0)
   get_ip_address(:private_ip, :eth1)
@@ -102,7 +103,13 @@ if looks_like_rackspace?
   # public_ip + private_ip are deprecated in favor of public_ipv4 and local_ipv4 to standardize.
   rackspace[:public_ipv4] = rackspace[:public_ip]
   get_global_ipv6_address(:public_ipv6, :eth0)
-  rackspace[:public_hostname] = "#{rackspace[:public_ip].gsub('.','-')}.static.cloud-ips.com"
+  unless rackspace[:public_ip].nil?
+    rackspace[:public_hostname] = begin
+                                    Resolv.getname(rackspace[:public_ip])
+                                  rescue SocketError
+                                    rackspace[:public_ip]
+                                  end
+  end
   rackspace[:local_ipv4] = rackspace[:private_ip]
   get_global_ipv6_address(:local_ipv6, :eth1)
   rackspace[:local_hostname] = hostname
