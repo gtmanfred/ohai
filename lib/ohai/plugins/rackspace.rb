@@ -106,7 +106,7 @@ if looks_like_rackspace?
   unless rackspace[:public_ip].nil?
     rackspace[:public_hostname] = begin
                                     Resolv.getname(rackspace[:public_ip])
-                                  rescue SocketError
+                                  rescue Resolv::ResolvError => this
                                     rackspace[:public_ip]
                                   end
   end
